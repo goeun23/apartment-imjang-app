@@ -265,7 +265,7 @@ export default function EditRecordPage({
           <label className="block text-sm font-medium text-gray-700 mb-3">
             평수 선택
           </label>
-          <AreaChipSelector selected={area} onSelect={setArea} />
+          <AreaChipSelector value={area} onChange={setArea} />
         </section>
 
         {/* Price Input */}
@@ -288,7 +288,7 @@ export default function EditRecordPage({
           <label className="block text-sm font-medium text-gray-700 mb-3">
             초등학교 접근성
           </label>
-          <StarRating rating={schoolScore} onRatingChange={setSchoolScore} />
+          <StarRating value={schoolScore} onChange={setSchoolScore} />
         </section>
 
         {/* Traffic Accessibility */}
