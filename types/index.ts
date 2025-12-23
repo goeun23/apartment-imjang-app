@@ -14,6 +14,8 @@ export interface Record {
   region_dong?: string
   address_full?: string
   apartment_name?: string
+  latitude?: number
+  longitude?: number
   school_accessibility: number // 1-5
   traffic_accessibility: string
   is_ltv_regulated: boolean
