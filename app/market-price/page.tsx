@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { getMarketPrices } from "@/lib/services/marketPriceService"
 import { MarketPrice } from "@/types"
 
@@ -12,8 +13,6 @@ export default function MarketPricePage() {
   const [selectedGu, setSelectedGu] = useState(SEOUL_GU[0])
   const [selectedYear, setSelectedYear] = useState("202511")
   const [searchQuery, setSearchQuery] = useState("")
-  const [marketPrices, setMarketPrices] = useState<MarketPrice[]>([])
-  const [loading, setLoading] = useState(false)
 
   const years = ["202511", "202411", "202311"]
   const guList = selectedRegion === "서울" ? SEOUL_GU : GYEONGGI_GU
@@ -23,36 +22,28 @@ export default function MarketPricePage() {
     setSelectedGu(selectedRegion === "서울" ? SEOUL_GU[0] : GYEONGGI_GU[0])
   }, [selectedRegion])
 
-  const fetchData = async () => {
-    setLoading(true)
-    try {
-      const data = await getMarketPrices(selectedGu, selectedYear)
-      setMarketPrices(data)
-    } catch (error) {
-      console.error("Failed to fetch market prices", error)
-      alert("시세 정보를 불러오는데 실패했습니다.")
-    } finally {
-      setLoading(false)
-    }
-  }
+  // React Query를 사용한 시세 조회
+  const {
+    data: marketPrices = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["market-price", selectedGu, selectedYear],
+    queryFn: () => getMarketPrices(selectedGu, selectedYear),
+    // 시세 데이터는 자주 변하지 않으므로 7일간 캐시 유지
+    staleTime: 1000 * 60 * 60 * 24 * 7, // 7일
+    // 캐시는 30일간 유지
+    gcTime: 1000 * 60 * 60 * 24 * 30, // 30일 (구 cacheTime)
+    // 실패 시 2번 재시도
+    retry: 2,
+  })
 
-  useEffect(() => {
-    fetchData()
-  }, [selectedGu, selectedYear])
-
-  const handleSearch = () => {
-    // Client-side filtering for now, as the API fetches by Region+Month
-    // In a real app, we might pass the query to the API
-    if (!searchQuery.trim()) {
-      fetchData() // Reset to full list
-      return
-    }
-
-    const filtered = marketPrices.filter((item) =>
-      item.apartment_name.includes(searchQuery)
-    )
-    setMarketPrices(filtered)
-  }
+  // 클라이언트 사이드 검색 (캐시된 데이터에서 필터링)
+  const filteredPrices = searchQuery.trim()
+    ? marketPrices.filter((item) =>
+        item.apartment_name.includes(searchQuery)
+      )
+    : marketPrices
 
   return (
     <main className="min-h-screen bg-gray-50 pb-20">
@@ -139,14 +130,7 @@ export default function MarketPricePage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="아파트명을 입력하세요"
               className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              onKeyPress={(e) => e.key === "Enter" && handleSearch()}
             />
-            <button
-              onClick={handleSearch}
-              className="px-6 py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors whitespace-nowrap"
-            >
-              검색
-            </button>
           </div>
         </div>
 
@@ -168,7 +152,7 @@ export default function MarketPricePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {loading ? (
+                {isLoading ? (
                   <tr>
                     <td
                       colSpan={3}
@@ -177,8 +161,17 @@ export default function MarketPricePage() {
                       데이터를 불러오는 중입니다...
                     </td>
                   </tr>
-                ) : marketPrices.length > 0 ? (
-                  marketPrices.map((item, index) => (
+                ) : error ? (
+                  <tr>
+                    <td
+                      colSpan={3}
+                      className="px-4 py-12 text-center text-red-500"
+                    >
+                      시세 정보를 불러오는데 실패했습니다. 다시 시도해주세요.
+                    </td>
+                  </tr>
+                ) : filteredPrices.length > 0 ? (
+                  filteredPrices.map((item, index) => (
                     <tr
                       key={index}
                       className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}

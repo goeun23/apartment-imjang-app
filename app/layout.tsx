@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Noto_Sans_KR } from "next/font/google"
 import "./globals.css"
 import BottomNav from "@/components/layout/BottomNav"
+import { QueryProvider } from "@/lib/providers/QueryProvider"
 
 const notoSansKr = Noto_Sans_KR({
   subsets: ["latin"],
@@ -22,8 +23,10 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className={`${notoSansKr.className} antialiased pb-16 font-light`}>
-        {children}
-        <BottomNav />
+        <QueryProvider>
+          {children}
+          <BottomNav />
+        </QueryProvider>
       </body>
     </html>
   )

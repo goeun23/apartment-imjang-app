@@ -1,8 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useQuery } from "@tanstack/react-query"
+import { getFilteredRecords, FilterOptions } from "@/lib/services/recordService"
+import { Record, RecordPhoto } from "@/types"
 
 interface FilterState {
   type: string[]
@@ -24,31 +27,50 @@ export default function FilterPage() {
     school_accessibility_min: 0,
   })
 
-  // Mock filtered results
-  const [results] = useState([
-    {
-      id: 1,
-      type: "아파트",
-      apartment_name: "래미안 아파트",
-      region: "성남시 중원구",
-      price: 15.5,
-      area_pyeong: 30,
-      school_accessibility: 4,
-      is_ltv_regulated: false,
-      created_at: "2024-11-20",
-    },
-    {
-      id: 3,
-      type: "아파트",
-      apartment_name: "힐스테이트",
-      region: "서울시 서초구",
-      price: 18.2,
-      area_pyeong: 30,
-      school_accessibility: 3,
-      is_ltv_regulated: true,
-      created_at: "2024-11-18",
-    },
-  ])
+  // 필터 옵션을 React Query가 사용할 수 있는 형태로 변환
+  const filterOptions: FilterOptions = useMemo(() => {
+    const options: FilterOptions = {}
+
+    if (filters.type.length > 0) {
+      options.type = filters.type
+    }
+
+    if (filters.area_pyeong.length > 0) {
+      options.area_pyeong = filters.area_pyeong
+    }
+
+    if (filters.priceMin) {
+      options.priceMin = parseFloat(filters.priceMin)
+    }
+
+    if (filters.priceMax) {
+      options.priceMax = parseFloat(filters.priceMax)
+    }
+
+    if (filters.is_ltv_regulated !== "all") {
+      options.is_ltv_regulated = filters.is_ltv_regulated === "true"
+    }
+
+    if (filters.school_accessibility_min > 0) {
+      options.school_accessibility_min = filters.school_accessibility_min
+    }
+
+    return options
+  }, [filters])
+
+  // React Query를 사용한 필터 검색
+  const {
+    data: results = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["records", "filtered", filterOptions],
+    queryFn: () => getFilteredRecords(filterOptions),
+    // 필터가 하나도 없으면 쿼리를 실행하지 않음
+    enabled: Object.keys(filterOptions).length > 0,
+    // 필터 결과는 5분간 캐시 유지 (사용자가 필터를 변경했다가 다시 돌아올 때 빠르게 표시)
+    staleTime: 1000 * 60 * 5,
+  })
 
   const toggleArrayFilter = (key: keyof FilterState, value: any) => {
     const currentArray = filters[key] as any[]
@@ -69,10 +91,8 @@ export default function FilterPage() {
     })
   }
 
-  const applyFilters = () => {
-    // TODO: 실제 필터링 로직 구현
-    console.log("Applying filters:", filters)
-  }
+  // 필터 적용은 React Query가 자동으로 처리하므로 별도 함수 불필요
+  // 필터 상태가 변경되면 자동으로 재요청됨
 
   return (
     <main className="min-h-screen bg-gray-50 pb-20">
@@ -224,21 +244,26 @@ export default function FilterPage() {
           </div>
         </div>
 
-        {/* Apply Button */}
-        <button
-          onClick={applyFilters}
-          className="w-full bg-primary-600 text-white py-4 rounded-lg font-semibold hover:bg-primary-700 transition-colors shadow-md"
-        >
-          필터 적용 ({results.length}개)
-        </button>
-
         {/* Results */}
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-3">
-            검색 결과 ({results.length})
+            검색 결과 ({isLoading ? "..." : results.length})
           </h3>
-          <div className="space-y-3">
-            {results.map((record) => (
+          {isLoading ? (
+            <div className="text-center py-12 text-gray-500">
+              필터링 중...
+            </div>
+          ) : error ? (
+            <div className="text-center py-12 text-red-500">
+              오류가 발생했습니다. 다시 시도해주세요.
+            </div>
+          ) : results.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              조건에 맞는 기록이 없습니다.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {results.map((record: Record & { record_photos: RecordPhoto[] }) => (
               <Link
                 key={record.id}
                 href={`/records/${record.id}`}
@@ -260,15 +285,16 @@ export default function FilterPage() {
                       )}
                     </div>
                     <h3 className="font-semibold text-gray-900 text-lg">
-                      {record.apartment_name}
+                      {record.apartment_name || "이름 없음"}
                     </h3>
                     <p className="text-sm text-gray-500 mt-1">
-                      {record.region}
+                      {record.region_si} {record.region_gu}
+                      {record.region_dong && ` ${record.region_dong}`}
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="text-xl font-bold text-primary-600">
-                      {record.price}억
+                      {record.price_in_hundred_million}억
                     </p>
                   </div>
                 </div>
@@ -281,13 +307,14 @@ export default function FilterPage() {
                       {"☆".repeat(5 - record.school_accessibility)}
                     </span>
                   </div>
-                  <span className="text-xs text-gray-400">
-                    {record.created_at}
+                    <span className="text-xs text-gray-400">
+                    {new Date(record.created_at).toLocaleDateString("ko-KR")}
                   </span>
                 </div>
               </Link>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </main>

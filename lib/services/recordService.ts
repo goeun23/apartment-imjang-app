@@ -117,3 +117,60 @@ export const addComment = async (recordId: string, content: string) => {
 
   return data as Comment
 }
+
+export interface FilterOptions {
+  type?: string[]
+  area_pyeong?: number[]
+  priceMin?: number
+  priceMax?: number
+  is_ltv_regulated?: boolean | null // null = 전체
+  school_accessibility_min?: number
+}
+
+export const getFilteredRecords = async (filters: FilterOptions) => {
+  const supabase = createClientComponentClient()
+  let query = supabase
+    .from("records")
+    .select(
+      `
+      *,
+      record_photos (*)
+    `
+    )
+
+  // 필터 적용
+  if (filters.type && filters.type.length > 0) {
+    query = query.in("type", filters.type)
+  }
+
+  if (filters.area_pyeong && filters.area_pyeong.length > 0) {
+    query = query.in("area_pyeong", filters.area_pyeong)
+  }
+
+  if (filters.priceMin !== undefined) {
+    query = query.gte("price_in_hundred_million", filters.priceMin)
+  }
+
+  if (filters.priceMax !== undefined) {
+    query = query.lte("price_in_hundred_million", filters.priceMax)
+  }
+
+  if (filters.is_ltv_regulated !== null && filters.is_ltv_regulated !== undefined) {
+    query = query.eq("is_ltv_regulated", filters.is_ltv_regulated)
+  }
+
+  if (filters.school_accessibility_min !== undefined && filters.school_accessibility_min > 0) {
+    query = query.gte("school_accessibility", filters.school_accessibility_min)
+  }
+
+  // 최신순 정렬
+  query = query.order("created_at", { ascending: false })
+
+  const { data, error } = await query
+
+  if (error) {
+    throw error
+  }
+
+  return data as (Record & { record_photos: RecordPhoto[] })[]
+}
