@@ -338,26 +338,30 @@ export default function KakaoMap({ latitude, longitude }: KakaoMapProps) {
 					console.error('[KakaoMap] 스크립트 로드 실패', e)
 				}}
 			/>
-			<div className="map_wrap">
-				<div id="map" ref={mapRef} style={{ width: '100%', height: '100%' }} />
-				<ul id="category">
-					<li id="SC4" data-order="0">
-						<span className="category_bg school"></span>
-						학교
-					</li>
-					<li id="SW8" data-order="1">
-						<span className="category_bg subway"></span>
-						지하철
-					</li>
-					<li id="HP8" data-order="2">
-						<span className="category_bg hospital"></span>
-						병원
-					</li>
-					<li id="MT1" data-order="3">
-						<span className="category_bg mart"></span>
-						대형마트
-					</li>
-				</ul>
+			<div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+				<div className="w-full h-96 rounded-lg overflow-hidden">
+					<div className="map_wrap">
+						<div id="map" ref={mapRef} style={{ width: '100%', height: '100%' }} />
+						<ul id="category">
+							<li id="SC4" data-order="0">
+								<span className="category_bg school"></span>
+								학교
+							</li>
+							<li id="SW8" data-order="1">
+								<span className="category_bg subway"></span>
+								지하철
+							</li>
+							<li id="HP8" data-order="2">
+								<span className="category_bg hospital"></span>
+								병원
+							</li>
+							<li id="MT1" data-order="3">
+								<span className="category_bg mart"></span>
+								대형마트
+							</li>
+						</ul>
+					</div>
+				</div>
 			</div>
 		</>
 	)

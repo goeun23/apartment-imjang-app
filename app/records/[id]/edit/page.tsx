@@ -11,6 +11,7 @@ import PhotoUploader from '@/components/PhotoUploader'
 import { AddressSearch } from '@/components/features/AddressSearch'
 import { RecordType, AreaPyeong, LtvRate, RegionSi } from '@/types'
 import { geocodeAddress } from '@/lib/apis/kakao'
+import MoneyRange from '@/components/features/MoneyRange'
 
 export default function EditRecordPage({ params }: { params: Promise<{ id: string }> }) {
 	const router = useRouter()
@@ -359,6 +360,7 @@ export default function EditRecordPage({ params }: { params: Promise<{ id: strin
 						placeholder="기타 특이사항을 자유롭게 기록하세요"
 						className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent h-32 resize-none"
 					/>
+			
 				</section>
 
 				{/* Photo Upload */}
