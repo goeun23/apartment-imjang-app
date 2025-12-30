@@ -3,6 +3,7 @@ import { Noto_Sans_KR } from "next/font/google"
 import "./globals.css"
 import BottomNav from "@/components/layout/BottomNav"
 import { QueryProvider } from "@/lib/providers/QueryProvider"
+import PushNotificationManager from "@/components/PushNotificationManager"
 
 const notoSansKr = Noto_Sans_KR({
   subsets: ["latin"],
@@ -26,6 +27,7 @@ export default function RootLayout({
         <QueryProvider>
           {children}
           <BottomNav />
+          <PushNotificationManager />
         </QueryProvider>
       </body>
     </html>

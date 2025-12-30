@@ -125,6 +125,22 @@ export default function NewRecordPage() {
 				if (photoError) throw photoError
 			}
 
+			// 4. 푸시 알림 전송 (비동기로 실행, 실패해도 글 등록은 성공)
+			fetch('/api/push/send', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					title: '새 임장 기록이 등록되었습니다',
+					body: `${formData.region_si} ${formData.region_gu} ${formData.apartment_name || '임장 기록'}`,
+					url: `/records/${record.id}`,
+				}),
+			}).catch((error) => {
+				console.error('푸시 알림 전송 실패:', error)
+				// 푸시 알림 실패는 무시하고 계속 진행
+			})
+
 			alert('임장 기록이 저장되었습니다!')
 			router.push('/')
 			router.refresh()
