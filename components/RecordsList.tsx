@@ -1,12 +1,49 @@
+"use client"
+
+import { useEffect } from "react"
 import Link from "next/link"
+import { useInfiniteQuery } from "@tanstack/react-query"
+import { useInView } from "react-intersection-observer"
 import { Record, RecordPhoto } from "@/types"
+import { fetchRecordsAction } from "@/lib/actions/record"
 
 interface RecordsListProps {
   records: (Record & { record_photos: RecordPhoto[] })[]
 }
 
-export default function RecordsList({ records }: RecordsListProps) {
-  if (records.length === 0) {
+export default function RecordsList({ records: initialRecords }: RecordsListProps) {
+  const { ref, inView } = useInView()
+
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    status
+  } = useInfiniteQuery({
+    queryKey: ["records"],
+    queryFn: async ({ pageParam = 1 }) => {
+      return await fetchRecordsAction({ page: pageParam, limit: 10 })
+    },
+    initialPageParam: 2,
+    getNextPageParam: (lastPage, allPages) => {
+      return lastPage.length === 10 ? allPages.length + 1 : undefined
+    },
+    initialData: {
+      pages: [initialRecords],
+      pageParams: [1]
+    }
+  })
+
+  useEffect(() => {
+    if (inView && hasNextPage) {
+      fetchNextPage()
+    }
+  }, [inView, hasNextPage, fetchNextPage])
+
+  const allRecords = data ? data.pages.flat() : initialRecords
+
+  if (allRecords.length === 0) {
     return (
       <div className="text-center py-12">
         <p className="text-gray-500 mb-4">아직 등록된 임장 기록이 없습니다</p>
@@ -22,7 +59,7 @@ export default function RecordsList({ records }: RecordsListProps) {
 
   return (
     <div className="space-y-3">
-      {records.map((record) => (
+      {allRecords.map((record) => (
         <Link
           key={record.id}
           href={`/records/${record.id}`}
@@ -71,6 +108,17 @@ export default function RecordsList({ records }: RecordsListProps) {
           </div>
         </Link>
       ))}
+
+      {/* Loading trigger */}
+      <div ref={ref} className="py-4 text-center">
+        {isFetchingNextPage ? (
+          <div className="text-gray-500 text-sm">더 불러오는 중...</div>
+        ) : hasNextPage ? (
+          <div className="h-4" />
+        ) : (
+          <div className="text-gray-400 text-sm">모든 기록을 불러왔습니다</div>
+        )}
+      </div>
     </div>
   )
 }

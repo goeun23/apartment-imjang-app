@@ -1,10 +1,10 @@
 import { Suspense } from "react"
 import Link from "next/link"
-import { getRecords } from "@/lib/services/recordService.server"
+import { fetchRecordsAction } from "@/lib/actions/record"
 import RecordsList from "@/components/RecordsList"
 
 async function RecordsListSection() {
-  const records = await getRecords()
+  const records = await fetchRecordsAction({ page: 1, limit: 10 })
   return (
     <>
       <div className="mb-4 flex justify-between items-center">
@@ -26,11 +26,10 @@ async function RecordsListSection() {
 }
 
 async function RecordsHeader() {
-  const records = await getRecords()
   return (
     <div className="bg-primary-600 text-white px-4 py-6">
       <h1 className="text-2xl font-bold">임장 기록</h1>
-      <p className="text-primary-100 text-sm mt-1">총 {records.length}개의 기록</p>
+      <p className="text-primary-100 text-sm mt-1">등록된 임장 기록 목록입니다</p>
     </div>
   )
 }
