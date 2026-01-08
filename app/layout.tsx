@@ -12,8 +12,31 @@ const notoSansKr = Noto_Sans_KR({
 })
 
 export const metadata: Metadata = {
-  title: "아파트 임장 기록",
+  title: {
+    template: "%s | 아파트 임장 기록",
+    default: "아파트 임장 기록",
+  },
   description: "아파트 임장 정보를 기록하고 관리하는 앱",
+  openGraph: {
+    title: "아파트 임장 기록",
+    description: "효율적인 아파트 임장 기록 관리 서비스",
+    url: "https://imjang-app.vercel.app", // Example URL
+    siteName: "아파트 임장 기록",
+    images: [
+      {
+        url: "/og-image.png", // Assuming existence or placeholder
+        width: 1200,
+        height: 630,
+      },
+    ],
+    locale: "ko_KR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "아파트 임장 기록",
+    description: "효율적인 아파트 임장 기록 관리 서비스",
+  },
 }
 
 export default function RootLayout({

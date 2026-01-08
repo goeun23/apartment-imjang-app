@@ -3,6 +3,16 @@ import Link from "next/link"
 import { fetchRecordsAction } from "@/lib/actions/record"
 import RecordsList from "@/components/RecordsList"
 
+export const metadata = {
+  title: "임장 기록 목록",
+  description: "등록된 아파트 임장 기록을 확인하세요",
+  openGraph: {
+    title: "임장 기록 목록 - 아파트 임장 기록",
+    description: "등록된 아파트 임장 기록을 확인하세요",
+    type: "website",
+  },
+}
+
 async function RecordsListSection() {
   const records = await fetchRecordsAction({ page: 1, limit: 10 })
   return (
