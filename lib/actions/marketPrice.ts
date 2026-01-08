@@ -28,7 +28,6 @@ export async function fetchMarketPricesAction(
   const lawdCd = RECION_CODE_MAP[regionName]
   if (!lawdCd) {
     console.warn(`Unknown region name: ${regionName}`)
-    // Fallback or just continue? The original code had logic for this.
   }
 
   const API_KEY = process.env.MOLIT_API_KEY
@@ -66,26 +65,12 @@ export async function fetchMarketPricesAction(
       console.error("Failed to fetch from MOLIT API:", e)
     }
   } else {
-    // Generate mock if needed, but original code had generateMockData function. 
-    // Since we didn't copy generateMockData, we rely on having an API key or returning empty.
-    // The previous code DID import/use generateMockData? 
-    // Let's check the previous `route.ts`. It had `generateMockData` call.
-    // But `route.ts` read by tool showed `generateMockData` usage.
-    // I need to ensure `generateMockData` is available or implement it here if fallback is desired.
-    // The user's repo seems to have it? No, in my edit I didn't see where it was imported from. 
-    // Ah, `generateMockData` was available in the scope of previous file? 
-    // Let's look at `route.ts` content I read/wrote earlier.
-    // Step 176 changes showed usage of `generateMockData`. But where was it defined?
-    // It was passed in. Wait. 
-    // The `route.ts` file I initially edited had `generateMockData`?
-    // Looking at Step 204 (view file) or Step 176 (replace).
-    // The replace content I sent in Step 176: 
-    // `recordsToReturn = generateMockData(regionName, yearMonth).map(...)`
-    // But I didn't see `generateMockData` implementation in the snippet.
-    // It probably exists in the file (unchanged parts).
-    // If I move code to a new file, I need to copy `generateMockData` or import it.
-    // If it's a local function in `route.ts`, I need to copy it.
-    // If imported, copy import.
+    recordsToReturn = generateMockData(regionName, yearMonth).map((item) => ({
+      ...item,
+      region_si: "서울",
+      region_gu: regionName,
+      fetched_at: new Date().toISOString(),
+    }))
   }
   
   return recordsToReturn

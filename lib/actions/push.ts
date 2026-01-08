@@ -29,6 +29,7 @@ export async function sendPushNotification(payload: PushPayload) {
     const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY
     const vapidEmail = process.env.VAPID_EMAIL || 'mailto:your-email@example.com'
 
+    // VAPID keys check
     if (!vapidPublicKey || !vapidPrivateKey) {
       console.error('VAPID keys not set')
       return { success: false, error: 'Server configuration error' }
