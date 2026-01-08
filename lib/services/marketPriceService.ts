@@ -1,5 +1,6 @@
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { MarketPrice } from "@/types"
+import { fetchMarketPricesAction } from "@/lib/actions/marketPrice"
 
 export async function getMarketPrices(
   regionCode: string,
@@ -27,13 +28,8 @@ export async function getMarketPrices(
 
   // 3. If no data, fetch from external API (via our internal API route)
   try {
-    const response = await fetch(
-      `/api/market-price?regionCode=${regionCode}&yearMonth=${yearMonth}`
-    )
-    if (!response.ok) throw new Error("Failed to fetch from external API")
-
-    const newData = await response.json()
-    return newData as MarketPrice[]
+    const newData = await fetchMarketPricesAction(regionCode, yearMonth)
+    return newData
   } catch (error) {
     console.error("Error fetching market prices from API:", error)
     return []
